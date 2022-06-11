@@ -39,6 +39,7 @@ dependencies:
     path: plugins/deduplicator
 
   easy_permission_validator: ^4.0.0
+  #flutter_launcher_icons: ^0.9.3
   #photo_gallery: ^1.1.1
 
 dev_dependencies:

@@ -67,7 +67,7 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
                 result.success("Android " + Build.VERSION.RELEASE);
                 break;
             case "getDuplicateFiles":
-                getDuplicateFiles(getAllFiles(context));
+                getDuplicateFiles(getPicturesFiles(context));
                 break;
             case "getDuplicateFilesF":
                 getDuplicatesOnBackground(
@@ -99,13 +99,13 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
             @Override
             public void run() {
 
-                ArrayList<ArrayList<String>> duplicates = getDuplicateFiles(getAllFiles(context));
+                ArrayList<ArrayList<String>> duplicates = getDuplicateFiles(getPicturesFiles(context));
                 callback.onComplete(duplicates);
             }
         });
     }
 
-    public List<File> getAllFiles(Context context) {
+    public List<File> getPicturesFiles(Context context) {
         Log.e(TAG, "Getting All Files");
         try {
             List<File> files = new ArrayList<>();
@@ -194,47 +194,49 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
     }
 
     public ArrayList<ArrayList<String>> getDuplicateFiles(List<File> files) {
-        HashMap<String, ArrayList<String>> hashmap = new HashMap<>();
-        HashMap<String, ArrayList<String>> duplicateHashSetOld = new HashMap<>();
-        HashMap<String, ArrayList<String>> duplicateHashSetNew = new HashMap<>();
-        ArrayList<ArrayList<String>> duplicateList = null;
+        HashMap<String, ArrayList<String>> allPicturesHashmap = new HashMap<>();
+        HashMap<String, ArrayList<String>> duplicatesHashMap = new HashMap<>();
+        ArrayList<ArrayList<String>> duplicatesList = null;
 
         for (File file : files) {
             //Log.e(TAG, "This File Path = " + file.getAbsolutePath());
             String md5 = getFileMD5ToString(file);
-            if (hashmap.containsKey(md5)) {
-                ArrayList<String> original = hashmap.get(md5);
+            if (allPicturesHashmap.containsKey(md5)) {
+                ArrayList<String> original = allPicturesHashmap.get(md5);
                 assert original != null;
                 Log.e(TAG, "Duplicate Found = " + file.getAbsolutePath() + "\n"
-                        + original.get(0));
-                if (duplicateHashSetNew.containsKey(md5)) {
-                    List<String> fileList;
+                        + original);
+                if (duplicatesHashMap.containsKey(md5)) {
+                    ArrayList<String> fileList;
                     if (original != null) {
                         fileList = original;
-                        fileList.add(original.get(0));
+                        //fileList.addAll(original);
+                        fileList.add(file.getAbsolutePath());
                     } else {
                         fileList = new ArrayList<>();
                         fileList.add(file.getAbsolutePath());
                     }
+                    duplicatesHashMap.put(md5, fileList);
+                    allPicturesHashmap.put(md5, fileList);
                 } else {
-                    ArrayList<String> fileList = new ArrayList<>();
                     if (original == null) {
                         original = new ArrayList<>();
                     }
 
-                    fileList.add(original.get(0));
+                    ArrayList<String> fileList = new ArrayList<>(original);
                     fileList.add(file.getAbsolutePath());
-                    duplicateHashSetNew.put(md5, fileList);
+                    duplicatesHashMap.put(md5, fileList);
+                    allPicturesHashmap.put(md5, fileList);
                 }
             } else {
                 ArrayList<String> fileList = new ArrayList<>();
                 fileList.add(file.getAbsolutePath());
-                hashmap.put(md5, fileList);
+                allPicturesHashmap.put(md5, fileList);
                 //Log.e(TAG, "Hashmap Files = " + hashmap.toString());
             }
         }
 
-        duplicateList = new ArrayList<ArrayList<String>>(duplicateHashSetNew.values());
+        duplicatesList = new ArrayList<ArrayList<String>>(duplicatesHashMap.values());
 
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
         if (eventSink != null) {
@@ -243,34 +245,25 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
                 Log.e(TAG, "Duplicate Hash set new != Duplicate Hash set old");*/
             //duplicateHashSetOld = duplicateHashSetNew;
             //Log.e(TAG, "Duplicate Files : " + duplicateList.toString());
-            eventSink.success(duplicateList);
+            eventSink.success(duplicatesList);
             //}
         }//}
-
-        if (duplicateList != null) {
-            //Log.e(TAG, "getDuplicateFiles: " + duplicateList.toString());
-        }
-        return duplicateList;
+        return duplicatesList;
     }
 
     public static String getFileMD5ToString(final File file) {
         return bytes2HexString(getFileMD5(file), true);
     }
 
-    private static final char[] HEX_DIGITS_UPPER =
-            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-    private static final char[] HEX_DIGITS_LOWER =
-            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
     public static String bytes2HexString(final byte[] bytes, boolean isUpperCase) {
         if (bytes == null) return "";
-        char[] hexDigits = isUpperCase ? HEX_DIGITS_UPPER : HEX_DIGITS_LOWER;
+        char[] hexDigitsUpper = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
         int len = bytes.length;
         if (len <= 0) return "";
         char[] ret = new char[len << 1];
         for (int i = 0, j = 0; i < len; i++) {
-            ret[j++] = hexDigits[bytes[i] >> 4 & 0x0f];
-            ret[j++] = hexDigits[bytes[i] & 0x0f];
+            ret[j++] = hexDigitsUpper[bytes[i] >> 4 & 0x0f];
+            ret[j++] = hexDigitsUpper[bytes[i] & 0x0f];
         }
         return new String(ret);
     }

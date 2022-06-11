@@ -92,16 +92,20 @@ class _DuplicateImagesState extends State<DuplicateImages> {
       ),
       body: Stack(
         children: [
-          ListView.separated(
-            addAutomaticKeepAlives: false,
-            padding: const EdgeInsets.all(8),
-            itemCount: widget.duplicates.length,
-            itemBuilder: (BuildContext context, int index) {
-              return _buildExpandableTile(
-                  widget.duplicates[index].duplicateFiles);
-            },
-            separatorBuilder: (BuildContext context, int index) =>
-                const Divider(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 56.0),
+            child: ListView.separated(
+              physics: const BouncingScrollPhysics(),
+              addAutomaticKeepAlives: false,
+              padding: const EdgeInsets.all(8),
+              itemCount: widget.duplicates.length,
+              itemBuilder: (BuildContext context, int index) {
+                return _buildExpandableTile(
+                    widget.duplicates[index].duplicateFiles);
+              },
+              separatorBuilder: (BuildContext context, int index) =>
+                  const Divider(),
+            ),
           ),
           Positioned(
             bottom: 0,
@@ -126,12 +130,12 @@ class _DuplicateImagesState extends State<DuplicateImages> {
 
   Widget _buildExpandableTile(List<File> files) {
     return ExpansionTile(
-        initiallyExpanded: true,
         title: Text(
           files.length == 2 ? 'نسختين' : '${files.length} نسخ',
         ),
         children: [
           ListView.builder(
+              physics: const BouncingScrollPhysics(),
               shrinkWrap: true,
               itemCount: files.length,
               itemBuilder: (context, index) {
