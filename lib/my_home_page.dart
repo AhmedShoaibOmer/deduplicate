@@ -1,4 +1,3 @@
-import 'package:deduplicator/deduplicator.dart';
 import 'package:easy_permission_validator/easy_permission_validator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +20,26 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 0,
         centerTitle: true,
         title: const Text('إلغاء التكرار'),
+        actions: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.info),
+            onPressed: () {
+              showAboutDialog(
+                context: context,
+                applicationIcon: const FlutterLogo(),
+                applicationName: 'De-Duplicate App',
+                applicationVersion: '0.0.1',
+                applicationLegalese: '©2022 De-Duplicate',
+                children: <Widget>[
+                  const Padding(
+                      padding: EdgeInsets.only(top: 15),
+                      child: Text(
+                          'برنامج لإيجاد الصور المكررة باستخدام خوارزمية MD5 or Message Digest 5'))
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: Stack(
         alignment: Alignment.center,
@@ -46,7 +65,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (BuildContext context) => Result(key: GlobalKey(),),
+                        builder: (BuildContext context) => Result(
+                          key: GlobalKey(),
+                        ),
                       ),
                     );
                   }

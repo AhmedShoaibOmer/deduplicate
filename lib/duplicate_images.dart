@@ -127,19 +127,13 @@ class _DuplicateImagesState extends State<DuplicateImages> {
   Widget _buildExpandableTile(List<File> files) {
     return ExpansionTile(
         initiallyExpanded: true,
-      key: GlobalKey(),
         title: Text(
           files.length == 2 ? 'نسختين' : '${files.length} نسخ',
         ),
         children: [
-          GridView.builder(
+          ListView.builder(
               shrinkWrap: true,
               itemCount: files.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2),
               itemBuilder: (context, index) {
                 return DuplicateFile(files[index], (bool value) {
                   setState(() {
