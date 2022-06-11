@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 class Deduplicator {
@@ -11,8 +9,8 @@ class Deduplicator {
 
   static Stream<List<Object?>?>? _stream;
   static Stream<List<Object?>?>? get duplicateFilesStream {
-    
-    _stream = _eventChannel.receiveBroadcastStream().map<List<Object?>>((event) {
+    _stream =
+        _eventChannel.receiveBroadcastStream().map<List<Object?>>((event) {
       print('Deduplicator Dart : ${event.toString()}');
       return event;
     });
@@ -26,6 +24,10 @@ class Deduplicator {
 
   static Future<List<Object?>?> getDuplicateFilesF() async {
     return _methodChannel.invokeMethod('getDuplicateFilesF');
+  }
+
+  static Future<dynamic> deleteFiles(List<String> paths) async {
+    return _methodChannel.invokeMethod('deleteFiles', paths);
   }
 
   static Future<String?> get platformVersion async {

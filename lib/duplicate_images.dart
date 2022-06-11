@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:deduplicator/deduplicator.dart';
 import 'package:flutter/material.dart';
 
 import 'duplicate.dart';
@@ -17,7 +18,7 @@ class _DuplicateImagesState extends State<DuplicateImages> {
   List<File> selectedFiles = [];
 
   void _delete(BuildContext context) {
-    showDialog(
+    showDialog<bool>(
         context: context,
         builder: (BuildContext ctx) {
           return AlertDialog(
@@ -27,33 +28,45 @@ class _DuplicateImagesState extends State<DuplicateImages> {
               // The "Yes" button
               TextButton(
                   onPressed: () async {
-                    // Remove the box
-                    selectedFiles.forEach((e) async {
-                      try {
-                        await e.delete();
-                        selectedFiles.remove(e);
-                        widget.duplicates.removeWhere((d) {
-                          return d.duplicateFiles.contains(e);
-                        });
-                        setState(() {});
-                      } catch (e) {
-                        print(e);
-                      }
-                    });
-
                     // Close the dialog
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true);
                   },
                   child: const Text('إستمرار')),
               TextButton(
                   onPressed: () {
                     // Close the dialog
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(false);
                   },
                   child: const Text('إلغاء'))
             ],
           );
+        }).then((value) {
+      if (value ?? false) {
+        List<String> paths = [];
+        selectedFiles.forEach((element) {
+          paths.add(element.path);
         });
+        Deduplicator.deleteFiles(paths).then((value) {
+          if (value as bool) {
+            selectedFiles.forEach((e) {
+              widget.duplicates.forEach((d) {
+                if (d.duplicateFiles.contains(e)) {
+                  if (d.duplicateFiles.length > 2) {
+                    d.duplicateFiles.remove(e);
+                    print('did i called : $e');
+                  } else {
+                    print('why am i called : $e');
+                    widget.duplicates.remove(d);
+                  }
+                }
+              });
+              setState(() {});
+            });
+            selectedFiles.clear();
+          }
+        });
+      }
+    });
   }
 
   @override

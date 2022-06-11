@@ -30,6 +30,16 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
+    }
+
+    dependencies {
+        implementation 'androidx.activity:activity:1.4.0'
     }
 }
+
+dependencies {
+    implementation 'androidx.activity:activity:1.4.0'
+}
+
+

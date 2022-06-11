@@ -1,6 +1,13 @@
 package com.example.deduplicator;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.app.RecoverableSecurityException;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -8,6 +15,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
 
 import java.io.File;
@@ -23,22 +31,29 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
 
 interface DuplicatesCallback {
     void onComplete(ArrayList<ArrayList<String>> duplicates);
+}
+interface DeleteCallback {
+    void onComplete();
 }
 
 /**
  * DeduplicatorPlugin
  */
 public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
-        EventChannel.StreamHandler {
+        EventChannel.StreamHandler , ActivityAware, PluginRegistry.ActivityResultListener {
     private static final String TAG = "deduplicatorPlugin";
+    private static final int DELETE_FILES_REQUEST_CODE = 5635;
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -48,6 +63,10 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
     private EventChannel.EventSink eventSink;
 
     private Context context;
+    private ComponentActivity activity;
+
+    private ArrayList<Uri> urisToDelete;
+    private Result deleteResult;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -67,7 +86,7 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
                 result.success("Android " + Build.VERSION.RELEASE);
                 break;
             case "getDuplicateFiles":
-                getDuplicateFiles(getPicturesFiles(context));
+                getDuplicatePicsPaths(getPicturesFiles(context));
                 break;
             case "getDuplicateFilesF":
                 getDuplicatesOnBackground(
@@ -79,6 +98,18 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
                         }
                 );
                 break;
+            case "deleteFiles": {
+                ArrayList<String> paths = call.arguments();
+                if(paths != null && !paths.isEmpty()) {
+                    deleteResult = result;
+                    urisToDelete = new ArrayList<>();
+                    for(String path : paths) {
+                        urisToDelete.add(getUriFromPath(context, new File(path)));
+                    }
+                    delete();
+                }
+                break;
+            }
             default:
                 result.notImplemented();
                 break;
@@ -98,8 +129,7 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
         executor.execute(new Runnable() {
             @Override
             public void run() {
-
-                ArrayList<ArrayList<String>> duplicates = getDuplicateFiles(getPicturesFiles(context));
+                ArrayList<ArrayList<String>> duplicates = getDuplicatePicsPaths(getPicturesFiles(context));
                 callback.onComplete(duplicates);
             }
         });
@@ -193,7 +223,7 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
         }
     }
 
-    public ArrayList<ArrayList<String>> getDuplicateFiles(List<File> files) {
+    public ArrayList<ArrayList<String>> getDuplicatePicsPaths(List<File> files) {
         HashMap<String, ArrayList<String>> allPicturesHashmap = new HashMap<>();
         HashMap<String, ArrayList<String>> duplicatesHashMap = new HashMap<>();
         ArrayList<ArrayList<String>> duplicatesList = null;
@@ -295,6 +325,82 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
         return null;
     }
 
+    public void delete() {
+        try {
+            deleteOnBackground();
+        } catch (SecurityException e) {
+
+            PendingIntent pendingIntent = null;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+                pendingIntent = MediaStore.createDeleteRequest(context.getContentResolver(), urisToDelete);
+
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                //if exception is recoverable then again send delete request using intent
+                if (e instanceof RecoverableSecurityException) {
+                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
+                    pendingIntent = exception.getUserAction().getActionIntent();
+                }
+            } else {
+                deleteResult.success(false);
+                return;
+            }
+
+            if (pendingIntent != null) {
+                try {
+                    pendingIntent.send(DELETE_FILES_REQUEST_CODE);
+                } catch (PendingIntent.CanceledException canceledException) {
+                    canceledException.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void deleteOnBackground() {
+        final DeleteCallback callback = new DeleteCallback() {
+            @Override
+            public void onComplete() {
+                deleteResult.success(true);
+            }
+        };
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                for(Uri uri : urisToDelete) {
+                    //delete object using resolver
+                    context.getContentResolver().delete(uri, null, null);
+                }
+                callback.onComplete();
+            }
+        });
+    }
+
+    public static Uri getUriFromPath(Context context, File file) {
+        String filePath = file.getAbsolutePath();
+        Cursor cursor = context.getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media._ID},
+                MediaStore.Images.Media.DATA + "=? ",
+                new String[]{filePath}, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+            cursor.close();
+            return Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "" + id);
+        } else {
+            if (file.exists()) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DATA, filePath);
+                return context.getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            } else {
+                return null;
+            }
+        }
+    }
+
     @Override
     public void onListen(Object arguments, EventChannel.EventSink events) {
         eventSink = events;
@@ -303,5 +409,42 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
     @Override
     public void onCancel(Object arguments) {
         eventSink = null;
+    }
+
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        activity = (ComponentActivity) binding.getActivity();
+        binding.addActivityResultListener(this);
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        activity = null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        activity = (ComponentActivity) binding.getActivity();
+        binding.addActivityResultListener(this);
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+    activity = null;
+    }
+
+    @Override
+    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == DELETE_FILES_REQUEST_CODE){
+            if (resultCode == RESULT_OK) {
+                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                    deleteOnBackground();
+                }
+            } else {
+                deleteResult.success(false);
+            }
+            return true;
+        }
+        return false;
     }
 }
