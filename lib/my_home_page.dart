@@ -1,3 +1,4 @@
+import 'package:deduplicate/scan_button.dart';
 import 'package:easy_permission_validator/easy_permission_validator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -50,9 +51,7 @@ class _HomePageState extends State<HomePage> {
             left: 0,
             right: 0,
             top: 0,
-            child: Container(
-              color: Theme.of(context).colorScheme.secondary,
-            ),
+            child: Container(),
           ),
           Positioned(
             top: 100,
@@ -61,34 +60,22 @@ class _HomePageState extends State<HomePage> {
             child: Image.asset('assets/icon/icon.png'),
           ),
           Positioned(
-            height: 150,
-            width: 200,
             bottom: 150,
-            child: ElevatedButton(
-                onPressed: () async {
-                  if (await _permissionRequest(context)) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => Result(
-                          key: GlobalKey(),
-                        ),
+            child: InkWell(
+              onTap: () async {
+                if (await _permissionRequest(context)) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => Result(
+                        key: GlobalKey(),
                       ),
-                    );
-                  }
-                },
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(
-                        CupertinoIcons.search,
-                        size: 48,
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      Text('ابحث عن الصور المكررة')
-                    ])),
+                    ),
+                  );
+                }
+              },
+              child: ScanButton(),
+            ),
           )
         ],
       ),

@@ -43,6 +43,7 @@ import io.flutter.plugin.common.PluginRegistry;
 interface DuplicatesCallback {
     void onComplete(ArrayList<ArrayList<String>> duplicates);
 }
+
 interface DeleteCallback {
     void onComplete();
 }
@@ -140,42 +141,10 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
         try {
             List<File> files = new ArrayList<>();
 
-/*
-      String pdf = MimeTypeMap.getSingleton().getMimeTypeFromExtension("pdf");
-      */
-/*String doc = MimeTypeMap.getSingleton().getMimeTypeFromExtension("doc");
-      String docx = MimeTypeMap.getSingleton().getMimeTypeFromExtension("docx");
-      String xlsx = MimeTypeMap.getSingleton().getMimeTypeFromExtension("xlsx");
-      String txt = MimeTypeMap.getSingleton().getMimeTypeFromExtension("txt");
-      String ppt = MimeTypeMap.getSingleton().getMimeTypeFromExtension("ppt");
-      String pptx = MimeTypeMap.getSingleton().getMimeTypeFromExtension("pptx");
-*/
-
-      /*String mp4 = MimeTypeMap.getSingleton().getMimeTypeFromExtension("mp4");
-      String mkv = MimeTypeMap.getSingleton().getMimeTypeFromExtension("mkv");
-      String avi = MimeTypeMap.getSingleton().getMimeTypeFromExtension("avi");
-
-      String apk = MimeTypeMap.getSingleton().getMimeTypeFromExtension("apk");
-      String mp3 = MimeTypeMap.getSingleton().getMimeTypeFromExtension("mp3");
-*/
-            //Uri table = MediaStore.Files.getContentUri("external");
             Uri table = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
             String[] data = new String[]{MediaStore.Images.ImageColumns.DATA};
-            /*String where = *//*MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + MediaStore.Files.FileColumns.MIME_TYPE + "=?" + " OR "
-              + */
-            /*    String[] args = new String[]{pdf, *//*doc, docx, xlsx, txt, ppt, pptx, *//*png, jpg, jpeg, gif, *//*mp4, mkv, avi, apk, mp3*//*};
-             */
+
             String sortOrder = MediaStore.Images.Media.DATE_TAKEN + " DESC, " + MediaStore.Images.Media.DATE_MODIFIED + " DESC";
 
             Cursor imageCursor;
@@ -229,7 +198,6 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
         ArrayList<ArrayList<String>> duplicatesList = null;
 
         for (File file : files) {
-            //Log.e(TAG, "This File Path = " + file.getAbsolutePath());
             String md5 = getFileMD5ToString(file);
             if (allPicturesHashmap.containsKey(md5)) {
                 ArrayList<String> original = allPicturesHashmap.get(md5);
@@ -262,22 +230,16 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
                 ArrayList<String> fileList = new ArrayList<>();
                 fileList.add(file.getAbsolutePath());
                 allPicturesHashmap.put(md5, fileList);
-                //Log.e(TAG, "Hashmap Files = " + hashmap.toString());
             }
         }
 
         duplicatesList = new ArrayList<ArrayList<String>>(duplicatesHashMap.values());
 
-        //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
         if (eventSink != null) {
             Log.e(TAG, "Sending Duplicate Files");
-              /*if (duplicateHashSetOld != duplicateHashSetNew) {
-                Log.e(TAG, "Duplicate Hash set new != Duplicate Hash set old");*/
-            //duplicateHashSetOld = duplicateHashSetNew;
-            //Log.e(TAG, "Duplicate Files : " + duplicateList.toString());
+
             eventSink.success(duplicatesList);
-            //}
-        }//}
+        }
         return duplicatesList;
     }
 
