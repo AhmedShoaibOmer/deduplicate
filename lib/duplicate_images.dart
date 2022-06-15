@@ -15,6 +15,15 @@ class DuplicateImages extends StatefulWidget {
 
 class _DuplicateImagesState extends State<DuplicateImages> {
   List<File> selectedFiles = [];
+  List<File> duplicateFiles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    widget.duplicates.forEach((element) {
+      duplicateFiles.addAll(element.duplicateFiles);
+    });
+  }
 
   void _delete(BuildContext context) {
     showDialog<bool>(
@@ -119,7 +128,55 @@ class _DuplicateImagesState extends State<DuplicateImages> {
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 56.0),
-            child: ListView.separated(
+            child: GridView.count(
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              crossAxisCount: 2,
+              padding: const EdgeInsets.all(16.0),
+              crossAxisSpacing: 10.0,
+              children: duplicateFiles
+                  .map((e) => InkWell(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            image: DecorationImage(
+                              image: FileImage(
+                                e,
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                child: Checkbox(
+                                  value: selectedFiles.contains(e),
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      if (value!) {
+                                        selectedFiles.add(e);
+                                      } else {
+                                        selectedFiles.remove(e);
+                                      }
+                                    });
+                                  },
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        onTap: () => {
+                          setState(() {
+                            if (!selectedFiles.contains(e)) {
+                              selectedFiles.add(e);
+                            } else {
+                              selectedFiles.remove(e);
+                            }
+                          })
+                        },
+                      ))
+                  .toList(),
+            ), /*ListView.separated(
               physics: const BouncingScrollPhysics(),
               addAutomaticKeepAlives: false,
               padding: const EdgeInsets.all(8),
@@ -130,7 +187,7 @@ class _DuplicateImagesState extends State<DuplicateImages> {
               },
               separatorBuilder: (BuildContext context, int index) =>
                   const Divider(),
-            ),
+            ),*/
           ),
           Positioned(
             bottom: 0,
@@ -153,7 +210,7 @@ class _DuplicateImagesState extends State<DuplicateImages> {
     );
   }
 
-  Widget _buildExpandableTile(List<File> files) {
+/*  Widget _buildExpandableTile(List<File> files) {
     return ExpansionTile(
         title: Text(
           files.length == 2 ? 'نسختين' : '${files.length} نسخ',
@@ -209,5 +266,5 @@ class _DuplicateImagesState extends State<DuplicateImages> {
                 .toList(),
           ),
         ]);
-  }
+  }*/
 }
