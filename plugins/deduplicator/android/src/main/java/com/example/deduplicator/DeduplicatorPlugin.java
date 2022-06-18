@@ -17,6 +17,13 @@ import android.util.Log;
 
 import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
+import androidx.room.Room;
+
+import com.example.deduplicator.data.daos.DuplicateImagesDao;
+import com.example.deduplicator.data.daos.ImageDao;
+import com.example.deduplicator.data.db.AppDatabase;
+import com.example.deduplicator.data.models.DuplicateImages;
+import com.example.deduplicator.data.models.Image;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +33,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -66,6 +74,9 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
     private Context context;
     private ComponentActivity activity;
 
+    private ImageDao imageDao;
+    private DuplicateImagesDao duplicateImagesDao;
+
     private ArrayList<Uri> urisToDelete;
     private Result deleteResult;
 
@@ -78,6 +89,11 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
 
         eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "deduplicator/event");
         eventChannel.setStreamHandler(this);
+
+        AppDatabase db = Room.databaseBuilder(context,
+                AppDatabase.class, "deduplicate_database").build();
+        imageDao = db.imageDao();
+        duplicateImagesDao = db.duplicateImagesDao();
     }
 
     @Override
@@ -192,7 +208,7 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
         }
     }
 
-    public ArrayList<ArrayList<String>> getDuplicatePicsPaths(List<File> files) {
+/*    public ArrayList<ArrayList<String>> getDuplicatePicsPaths(List<File> files) {
         HashMap<String, ArrayList<String>> allPicturesHashmap = new HashMap<>();
         HashMap<String, ArrayList<String>> duplicatesHashMap = new HashMap<>();
         ArrayList<ArrayList<String>> duplicatesList = null;
@@ -234,6 +250,44 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
         }
 
         duplicatesList = new ArrayList<ArrayList<String>>(duplicatesHashMap.values());
+
+        if (eventSink != null) {
+            Log.e(TAG, "Sending Duplicate Files");
+
+            eventSink.success(duplicatesList);
+        }
+        return duplicatesList;
+    }
+    */
+
+    public ArrayList<ArrayList<String>> getDuplicatePicsPaths(List<File> files) {
+
+        HashSet<String> allHashs = new HashSet<>();
+
+        ArrayList<ArrayList<String>> duplicatesList = new ArrayList<>();
+
+        for (File file : files) {
+            String md5 = getFileMD5ToString(file);
+            imageDao.insertAll(new Image(file.getAbsolutePath(),
+                    md5));
+            allHashs.add(md5);
+        }
+
+        for (String hash : allHashs) {
+            List<Image> duplicates = imageDao.findDuplicate(hash);
+            if(duplicates.size() > 1) {
+                DuplicateImages duplicateImages = new DuplicateImages(hash, new ArrayList<String>());
+
+                ArrayList<String> paths = new ArrayList<>();
+
+                for (Image image : duplicates) {
+                    duplicateImages.addImage(image);
+                    paths.add(image.path);
+                }
+                duplicateImagesDao.insertAll(duplicateImages);
+                duplicatesList.add(paths);
+            }
+        }
 
         if (eventSink != null) {
             Log.e(TAG, "Sending Duplicate Files");
