@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:deduplicator/deduplicator.dart';
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 
 import 'duplicate.dart';
 
 class DuplicateImages extends StatefulWidget {
   final List<Duplicate> duplicates;
+
   const DuplicateImages(this.duplicates, {Key? key}) : super(key: key);
 
   @override
@@ -141,7 +143,10 @@ class _DuplicateImagesState extends State<DuplicateImages> {
               crossAxisSpacing: 10.0,
               mainAxisSpacing: 10.0,
               children: duplicateFiles
-                  .map((e) => InkWell(
+                  .map(
+                    (e) => InkWell(
+                      child: Hero(
+                        tag: e.absolute,
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
@@ -171,16 +176,89 @@ class _DuplicateImagesState extends State<DuplicateImages> {
                             ],
                           ),
                         ),
-                        onTap: () => {
-                          setState(() {
-                            if (!selectedFiles.contains(e)) {
-                              selectedFiles.add(e);
-                            } else {
-                              selectedFiles.remove(e);
-                            }
-                          })
-                        },
-                      ))
+                      ),
+                      onTap: () async {
+                        await showDialog(
+                          barrierColor: Colors.black54,
+                          context: context,
+                          builder: (context) {
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                return Stack(
+                                  children: [
+                                    PhotoView(
+                                      imageProvider: FileImage(e),
+                                      initialScale:
+                                          PhotoViewComputedScale.contained *
+                                              0.8,
+                                      heroAttributes: PhotoViewHeroAttributes(
+                                          tag: e.absolute),
+                                      loadingBuilder: (context, event) =>
+                                          Center(
+                                        child: Container(
+                                          width: 20.0,
+                                          height: 20.0,
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
+                                      backgroundDecoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 16,
+                                      left: 16,
+                                      child: Material(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                        elevation: 4.0,
+                                        child: CloseButton(
+                                          color: const Color(0xFFffa40b),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 72,
+                                      left: 16,
+                                      child: Material(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                        elevation: 4.0,
+                                        child: Checkbox(
+                                          value: selectedFiles.contains(e),
+                                          onChanged: (bool? value) {
+                                            setState(
+                                              () {
+                                                if (value!) {
+                                                  selectedFiles.add(e);
+                                                } else {
+                                                  selectedFiles.remove(e);
+                                                }
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
+                        setState(() {});
+                      },
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -205,28 +283,3 @@ class _DuplicateImagesState extends State<DuplicateImages> {
     );
   }
 }
-/*
-PhotoViewGallery.builder(
-scrollPhysics: const BouncingScrollPhysics(),
-builder: (BuildContext context, int index) {
-return PhotoViewGalleryPageOptions(
-imageProvider: FileImage(duplicateFiles[index]),
-initialScale: PhotoViewComputedScale.contained * 0.8,
-heroAttributes: PhotoViewHeroAttributes(
-tag: duplicateFiles[index].absolute),
-);
-},
-itemCount: duplicateFiles.length,
-loadingBuilder: (context, event) => Center(
-child: Container(
-width: 20.0,
-height: 20.0,
-child: CircularProgressIndicator(),
-),
-),
-backgroundDecoration: BoxDecoration(
-borderRadius: BorderRadius.circular(10),
-),
-//pageController: widget.pageController,
-//onPageChanged: onPageChanged,
-)*/
