@@ -61,6 +61,7 @@ class _DuplicateImagesState extends State<DuplicateImages> {
               widget.duplicates.forEach((d) {
                 if (d.duplicateFiles.contains(e)) {
                   if (d.duplicateFiles.length > 2) {
+                    duplicateFiles.remove(e);
                     d.duplicateFiles.remove(e);
                     print('did i called : $e');
                   } else {
@@ -72,8 +73,11 @@ class _DuplicateImagesState extends State<DuplicateImages> {
             });
             setState(() {
               if (toRemove.length > 0) {
-                toRemove.forEach((element) {
-                  widget.duplicates.remove(element);
+                toRemove.forEach((e) {
+                  e.duplicateFiles.forEach((element) {
+                    duplicateFiles.remove(element);
+                  });
+                  widget.duplicates.remove(e);
                 });
               }
               selectedFiles.clear();
@@ -129,11 +133,13 @@ class _DuplicateImagesState extends State<DuplicateImages> {
           Padding(
             padding: const EdgeInsets.only(bottom: 56.0),
             child: GridView.count(
+              //key: GlobalKey(),
               shrinkWrap: true,
               physics: ClampingScrollPhysics(),
               crossAxisCount: 2,
               padding: const EdgeInsets.all(16.0),
               crossAxisSpacing: 10.0,
+              mainAxisSpacing: 10.0,
               children: duplicateFiles
                   .map((e) => InkWell(
                         child: Container(
