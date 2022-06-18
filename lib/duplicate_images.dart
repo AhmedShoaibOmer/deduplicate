@@ -176,18 +176,7 @@ class _DuplicateImagesState extends State<DuplicateImages> {
                         },
                       ))
                   .toList(),
-            ), /*ListView.separated(
-              physics: const BouncingScrollPhysics(),
-              addAutomaticKeepAlives: false,
-              padding: const EdgeInsets.all(8),
-              itemCount: widget.duplicates.length,
-              itemBuilder: (BuildContext context, int index) {
-                return _buildExpandableTile(
-                    widget.duplicates[index].duplicateFiles);
-              },
-              separatorBuilder: (BuildContext context, int index) =>
-                  const Divider(),
-            ),*/
+            ),
           ),
           Positioned(
             bottom: 0,
@@ -209,62 +198,29 @@ class _DuplicateImagesState extends State<DuplicateImages> {
       ),
     );
   }
-
-/*  Widget _buildExpandableTile(List<File> files) {
-    return ExpansionTile(
-        title: Text(
-          files.length == 2 ? 'نسختين' : '${files.length} نسخ',
-        ),
-        children: [
-          GridView.count(
-            shrinkWrap: true,
-            physics: ClampingScrollPhysics(),
-            crossAxisCount: 2,
-            padding: const EdgeInsets.all(16.0),
-            crossAxisSpacing: 10.0,
-            children: files
-                .map((e) => InkWell(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          image: DecorationImage(
-                            image: FileImage(
-                              e,
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              child: Checkbox(
-                                value: selectedFiles.contains(e),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value!) {
-                                      selectedFiles.add(e);
-                                    } else {
-                                      selectedFiles.remove(e);
-                                    }
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      onTap: () => {
-                        setState(() {
-                          if (!selectedFiles.contains(e)) {
-                            selectedFiles.add(e);
-                          } else {
-                            selectedFiles.remove(e);
-                          }
-                        })
-                      },
-                    ))
-                .toList(),
-          ),
-        ]);
-  }*/
 }
+/*
+PhotoViewGallery.builder(
+scrollPhysics: const BouncingScrollPhysics(),
+builder: (BuildContext context, int index) {
+return PhotoViewGalleryPageOptions(
+imageProvider: FileImage(duplicateFiles[index]),
+initialScale: PhotoViewComputedScale.contained * 0.8,
+heroAttributes: PhotoViewHeroAttributes(
+tag: duplicateFiles[index].absolute),
+);
+},
+itemCount: duplicateFiles.length,
+loadingBuilder: (context, event) => Center(
+child: Container(
+width: 20.0,
+height: 20.0,
+child: CircularProgressIndicator(),
+),
+),
+backgroundDecoration: BoxDecoration(
+borderRadius: BorderRadius.circular(10),
+),
+//pageController: widget.pageController,
+//onPageChanged: onPageChanged,
+)*/

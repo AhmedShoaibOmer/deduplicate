@@ -88,11 +88,6 @@ class _HomePageState extends State<HomePage> {
       appName: 'De-Duplicate',
       appNameColor: Colors.red,
       cancelText: 'Cancel',
-      //enableLocationMessage:
-      //'Debe habilitar los permisos necesarios para utilizar la acción.',
-      //goToSettingsText: 'Ir a Configuraciones',
-      //permissionSettingsMessage:
-      //'Necesita habilitar los permisos necesarios para que la aplicación funcione correctamente',
     );
     var result = await permissionValidator.storage();
     return result;
