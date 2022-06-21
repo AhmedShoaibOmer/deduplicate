@@ -19,6 +19,7 @@ class _ResultState extends State<Result> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Object?>?>(
+        key: GlobalKey(),
         future: Deduplicator.getDuplicateFilesF(),
         builder:
             (BuildContext context, AsyncSnapshot<List<Object?>?> snapshot) {
@@ -26,14 +27,22 @@ class _ResultState extends State<Result> {
             if (snapshot.data!.isEmpty) {
               return const NoDuplicateFiles();
             } else {
-              print('snapshot has data');
+              print('Result Future Builder : snapshot has data');
+
+              print(
+                  'Result Future Builder : snapshot data : Length : ${snapshot.data!.length}, Data : ${snapshot.data!.toString()}');
 
               List<Duplicate> duplicates = [];
 
               snapshot.data!.forEach((o) {
                 List<File> files = [];
-                (o as List<Object?>).forEach((element) {
+                print(
+                    'Result Future Builder : snapshot Object data : Length : ${(o as List<Object?>).length}, Data : ${(o as List<Object?>).toString()}');
+                (o).forEach((element) {
                   File file = File((element as String?)!);
+                  print(
+                      'Result Future Builder : snapshot Object file Data : ${(element as String).toString()}');
+
                   if (file.existsSync()) {
                     files.add(file);
                   }
@@ -42,6 +51,8 @@ class _ResultState extends State<Result> {
                   duplicates.add(Duplicate(files));
                 }
               });
+              print(
+                  'Result Future Builder : duplicates : Length : ${duplicates.length}, Data : ${duplicates.toString()}');
               if (duplicates.isEmpty) {
                 return const NoDuplicateFiles();
               } else {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
 import 'duplicate.dart';
+import 'no_duplicate_files.dart';
 
 class DuplicateImages extends StatefulWidget {
   final List<Duplicate> duplicates;
@@ -17,14 +18,21 @@ class DuplicateImages extends StatefulWidget {
 
 class _DuplicateImagesState extends State<DuplicateImages> {
   List<File> selectedFiles = [];
-  List<File> duplicateFiles = [];
+  late List<File> duplicateFiles;
 
   @override
   void initState() {
     super.initState();
+    print(
+        'Duplicates init State : duplicates data : Length : ${widget.duplicates.length}, Data : ${widget.duplicates.toString()}');
+
+    duplicateFiles = [];
     widget.duplicates.forEach((element) {
       duplicateFiles.addAll(element.duplicateFiles);
     });
+
+    print(
+        'Duplicate Files init State : duplicates Files data : Length : ${duplicateFiles.length}, Data : ${duplicateFiles.toString()}');
   }
 
   void _delete(BuildContext context) {
@@ -45,7 +53,7 @@ class _DuplicateImagesState extends State<DuplicateImages> {
               TextButton(
                   onPressed: () {
                     // Close the dialog
-                    Navigator.of(context).pop(false);
+                    Navigator.of(context).pop();
                   },
                   child: const Text('إلغاء'))
             ],
@@ -98,188 +106,194 @@ class _DuplicateImagesState extends State<DuplicateImages> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('الصور المكررة'),
-        automaticallyImplyLeading: false,
-        leading: selectedFiles.isEmpty
-            ? const BackButton()
-            : CloseButton(
-                onPressed: () {
-                  setState(() {
-                    selectedFiles.clear();
-                  });
-                },
-              ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                List<File> files = [];
-                widget.duplicates.forEach((element) {
-                  files.addAll(element.duplicateFiles);
-                });
-                if (selectedFiles.length == files.length) {
-                  selectedFiles.clear();
-                } else {
-                  selectedFiles = files;
-                }
-              });
-            },
-            icon: Icon(Icons.check_box),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 56.0),
-            child: GridView.count(
-              //key: GlobalKey(),
-              shrinkWrap: true,
-              physics: ClampingScrollPhysics(),
-              crossAxisCount: 2,
-              padding: const EdgeInsets.all(16.0),
-              crossAxisSpacing: 10.0,
-              mainAxisSpacing: 10.0,
-              children: duplicateFiles
-                  .map(
-                    (e) => InkWell(
-                      child: Hero(
-                        tag: e.absolute,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            image: DecorationImage(
-                              image: FileImage(
-                                e,
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                child: Checkbox(
-                                  value: selectedFiles.contains(e),
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      if (value!) {
-                                        selectedFiles.add(e);
-                                      } else {
-                                        selectedFiles.remove(e);
-                                      }
-                                    });
-                                  },
+    return duplicateFiles.length == 0
+        ? const NoDuplicateFiles()
+        : Scaffold(
+            appBar: AppBar(
+              title: const Text('الصور المكررة'),
+              automaticallyImplyLeading: false,
+              leading: selectedFiles.isEmpty
+                  ? const BackButton()
+                  : CloseButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedFiles.clear();
+                        });
+                      },
+                    ),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      List<File> files = [];
+                      widget.duplicates.forEach((element) {
+                        files.addAll(element.duplicateFiles);
+                      });
+                      if (selectedFiles.length == files.length) {
+                        selectedFiles.clear();
+                      } else {
+                        selectedFiles = files;
+                      }
+                    });
+                  },
+                  icon: Icon(Icons.check_box),
+                ),
+              ],
+            ),
+            body: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 56.0),
+                  child: GridView.count(
+                    key: GlobalKey(),
+                    shrinkWrap: false,
+                    physics: ClampingScrollPhysics(),
+                    crossAxisCount: 2,
+                    padding: const EdgeInsets.all(16.0),
+                    crossAxisSpacing: 10.0,
+                    mainAxisSpacing: 10.0,
+                    children: duplicateFiles
+                        .map(
+                          (e) => InkWell(
+                            child: Hero(
+                              tag: e.absolute,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  image: DecorationImage(
+                                    image: FileImage(
+                                      e,
+                                    ),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      onTap: () async {
-                        await showDialog(
-                          barrierColor: Colors.black54,
-                          context: context,
-                          builder: (context) {
-                            return StatefulBuilder(
-                              builder: (context, setState) {
-                                return Stack(
+                                child: Stack(
                                   children: [
-                                    PhotoView(
-                                      imageProvider: FileImage(e),
-                                      initialScale:
-                                          PhotoViewComputedScale.contained *
-                                              0.8,
-                                      heroAttributes: PhotoViewHeroAttributes(
-                                          tag: e.absolute),
-                                      loadingBuilder: (context, event) =>
-                                          Center(
-                                        child: Container(
-                                          width: 20.0,
-                                          height: 20.0,
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                      ),
-                                      backgroundDecoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
                                     Positioned(
-                                      top: 16,
-                                      left: 16,
-                                      child: Material(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)),
-                                        elevation: 4.0,
-                                        child: CloseButton(
-                                          color: const Color(0xFFffa40b),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 72,
-                                      left: 16,
-                                      child: Material(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)),
-                                        elevation: 4.0,
-                                        child: Checkbox(
-                                          value: selectedFiles.contains(e),
-                                          onChanged: (bool? value) {
-                                            setState(
-                                              () {
-                                                if (value!) {
-                                                  selectedFiles.add(e);
-                                                } else {
-                                                  selectedFiles.remove(e);
-                                                }
-                                              },
-                                            );
-                                          },
-                                        ),
+                                      child: Checkbox(
+                                        value: selectedFiles.contains(e),
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            if (value!) {
+                                              selectedFiles.add(e);
+                                            } else {
+                                              selectedFiles.remove(e);
+                                            }
+                                          });
+                                        },
                                       ),
                                     )
                                   ],
-                                );
-                              },
-                            );
+                                ),
+                              ),
+                            ),
+                            onTap: () async {
+                              await showDialog(
+                                barrierColor: Colors.black54,
+                                context: context,
+                                builder: (context) {
+                                  return StatefulBuilder(
+                                    builder: (context, setState) {
+                                      return Stack(
+                                        children: [
+                                          PhotoView(
+                                            imageProvider: FileImage(e),
+                                            initialScale: PhotoViewComputedScale
+                                                    .contained *
+                                                0.8,
+                                            heroAttributes:
+                                                PhotoViewHeroAttributes(
+                                                    tag: e.absolute),
+                                            loadingBuilder: (context, event) =>
+                                                Center(
+                                              child: Container(
+                                                width: 20.0,
+                                                height: 20.0,
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            ),
+                                            backgroundDecoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: 16,
+                                            left: 16,
+                                            child: Material(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(10)),
+                                              elevation: 4.0,
+                                              child: CloseButton(
+                                                color: const Color(0xFFffa40b),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: 72,
+                                            left: 16,
+                                            child: Material(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(10)),
+                                              elevation: 4.0,
+                                              child: Checkbox(
+                                                value:
+                                                    selectedFiles.contains(e),
+                                                onChanged: (bool? value) {
+                                                  setState(
+                                                    () {
+                                                      if (value!) {
+                                                        selectedFiles.add(e);
+                                                      } else {
+                                                        selectedFiles.remove(e);
+                                                      }
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                              setState(() {});
+                            },
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ElevatedButton.icon(
+                    onPressed: selectedFiles.isEmpty
+                        ? null
+                        : () async {
+                            _delete(context);
                           },
-                        );
-                        setState(() {});
-                      },
+                    icon: const Icon(
+                      Icons.delete_forever,
                     ),
-                  )
-                  .toList(),
+                    label: const Text('Delete Selected'),
+                  ),
+                ),
+              ],
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ElevatedButton.icon(
-              onPressed: selectedFiles.isEmpty
-                  ? null
-                  : () async {
-                      _delete(context);
-                    },
-              icon: const Icon(
-                Icons.delete_forever,
-              ),
-              label: const Text('Delete Selected'),
-            ),
-          ),
-        ],
-      ),
-    );
+          );
   }
 }
