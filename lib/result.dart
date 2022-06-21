@@ -26,7 +26,9 @@ class _ResultState extends State<Result> {
             if (snapshot.data!.isEmpty) {
               return const NoDuplicateFiles();
             } else {
-              print('snapshot has data');
+              print('Result Future Builder : snapshot has data');
+              print(
+                  'Result Future Builder : snapshot data length : ${snapshot.data!.length}, snapshot data : ${snapshot.data.toString()}');
 
               List<Duplicate> duplicates = [];
 
@@ -55,29 +57,5 @@ class _ResultState extends State<Result> {
             return Scanning();
           }
         });
-    //   return StreamBuilder(
-    //       stream: Deduplicator.duplicateFilesStream,
-    //       builder:
-    //           (BuildContext context, AsyncSnapshot<List<Object?>?> snapshot) {
-    //         if (!snapshot.hasData) {
-    //           return Scanning();
-    //         } else if (snapshot.data!.isEmpty) {
-    //           return NoDuplicateFiles();
-    //         } else {
-    //             print('snapshot has data');
-
-    //           List<Duplicate> duplicates = [];
-
-    //           snapshot.data!.forEach((o) {
-    //             List<File> files = [];
-    //             (o as List<Object?>).forEach((element) {
-    //               files.add(File((element as String?)!));
-    //             });
-    //             duplicates.add(Duplicate(files));
-    //           });
-    //           return DuplicateImages(duplicates);
-    //         }
-    //       });
-    // }
   }
 }

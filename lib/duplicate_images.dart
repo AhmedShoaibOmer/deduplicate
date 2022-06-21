@@ -20,9 +20,15 @@ class _DuplicateImagesState extends State<DuplicateImages> {
   @override
   void initState() {
     super.initState();
+    print(
+        'Duplicates Images initState : duplicates data length : ${widget.duplicates.length}, duplicates data : ${widget.duplicates.toString()}');
+
     widget.duplicates.forEach((element) {
       duplicateFiles.addAll(element.duplicateFiles);
     });
+
+    print(
+        'Duplicates Images initState : duplicate Files length : ${duplicateFiles.length}, duplicate files data : ${widget.duplicates.toString()}');
   }
 
   void _delete(BuildContext context) {
@@ -31,7 +37,7 @@ class _DuplicateImagesState extends State<DuplicateImages> {
         builder: (BuildContext ctx) {
           return AlertDialog(
             title: const Text('هل انت متأكد؟'),
-            content: Text(' سيتم حذف' '${selectedFiles.length}' ' عنصر'),
+            content: Text('سيتم حذف' ' ${selectedFiles.length} ' 'عنصر'),
             actions: [
               // The "Yes" button
               ElevatedButton(
@@ -209,62 +215,4 @@ class _DuplicateImagesState extends State<DuplicateImages> {
       ),
     );
   }
-
-/*  Widget _buildExpandableTile(List<File> files) {
-    return ExpansionTile(
-        title: Text(
-          files.length == 2 ? 'نسختين' : '${files.length} نسخ',
-        ),
-        children: [
-          GridView.count(
-            shrinkWrap: true,
-            physics: ClampingScrollPhysics(),
-            crossAxisCount: 2,
-            padding: const EdgeInsets.all(16.0),
-            crossAxisSpacing: 10.0,
-            children: files
-                .map((e) => InkWell(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          image: DecorationImage(
-                            image: FileImage(
-                              e,
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              child: Checkbox(
-                                value: selectedFiles.contains(e),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value!) {
-                                      selectedFiles.add(e);
-                                    } else {
-                                      selectedFiles.remove(e);
-                                    }
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      onTap: () => {
-                        setState(() {
-                          if (!selectedFiles.contains(e)) {
-                            selectedFiles.add(e);
-                          } else {
-                            selectedFiles.remove(e);
-                          }
-                        })
-                      },
-                    ))
-                .toList(),
-          ),
-        ]);
-  }*/
 }
