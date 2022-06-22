@@ -28,7 +28,7 @@ class Scanning extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 icon: Icon(Icons.cancel),
-                label: Text('Cancel'),
+                label: Text('إلغاء'),
               ),
             ]),
       ),

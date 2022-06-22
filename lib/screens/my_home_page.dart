@@ -1,9 +1,9 @@
-import 'package:deduplicate/scan_button.dart';
 import 'package:easy_permission_validator/easy_permission_validator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'result.dart';
+import 'widgets/scan_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key, required this.title}) : super(key: key);

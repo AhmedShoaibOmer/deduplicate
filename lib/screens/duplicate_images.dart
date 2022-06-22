@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:deduplicate/no_duplicate_files.dart';
+import 'package:deduplicate/screens/no_duplicate_files.dart';
 import 'package:deduplicator/deduplicator.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
-import 'duplicate.dart';
+import '../models/duplicate.dart';
 
 class DuplicateImages extends StatefulWidget {
   final List<Duplicate> duplicates;
@@ -22,41 +22,13 @@ class _DuplicateImagesState extends State<DuplicateImages> {
   @override
   void initState() {
     super.initState();
-    print(
-        'Duplicates Images initState : duplicates data length : ${widget.duplicates.length}, duplicates data : ${widget.duplicates.toString()}');
-
     widget.duplicates.forEach((element) {
       duplicateFiles.addAll(element.duplicateFiles);
     });
-
-    print(
-        'Duplicates Images initState : duplicate Files length : ${duplicateFiles.length}, duplicate files data : ${widget.duplicates.toString()}');
   }
 
   void _delete(BuildContext context) {
-    showDialog<bool>(
-        context: context,
-        builder: (BuildContext ctx) {
-          return AlertDialog(
-            title: const Text('هل انت متأكد؟'),
-            content: Text('سيتم حذف' ' ${selectedFiles.length} ' 'عنصر'),
-            actions: [
-              // The "Yes" button
-              ElevatedButton(
-                  onPressed: () async {
-                    // Close the dialog
-                    Navigator.of(context).pop(true);
-                  },
-                  child: const Text('حذف')),
-              TextButton(
-                  onPressed: () {
-                    // Close the dialog
-                    Navigator.of(context).pop(false);
-                  },
-                  child: const Text('إلغاء'))
-            ],
-          );
-        }).then((value) {
+    showDeleteDialog(context).then((value) {
       if (value ?? false) {
         List<String> paths = [];
         selectedFiles.forEach((element) {
@@ -100,6 +72,32 @@ class _DuplicateImagesState extends State<DuplicateImages> {
         });
       }
     });
+  }
+
+  Future<bool?> showDeleteDialog(BuildContext context) {
+    return showDialog<bool>(
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: const Text('هل انت متأكد؟'),
+            content: Text('سيتم حذف' ' ${selectedFiles.length} ' 'عنصر'),
+            actions: [
+              // The "Yes" button
+              ElevatedButton(
+                  onPressed: () async {
+                    // Close the dialog
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('حذف')),
+              TextButton(
+                  onPressed: () {
+                    // Close the dialog
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text('إلغاء'))
+            ],
+          );
+        });
   }
 
   @override

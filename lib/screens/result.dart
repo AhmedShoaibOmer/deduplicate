@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:deduplicator/deduplicator.dart';
 import 'package:flutter/material.dart';
 
-import 'duplicate.dart';
+import '../models/duplicate.dart';
 import 'duplicate_images.dart';
 import 'no_duplicate_files.dart';
 import 'scanning_screen.dart';
