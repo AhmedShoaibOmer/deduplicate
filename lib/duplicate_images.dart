@@ -22,9 +22,15 @@ class _DuplicateImagesState extends State<DuplicateImages> {
   @override
   void initState() {
     super.initState();
+    print(
+        'Duplicates Images initState : duplicates data length : ${widget.duplicates.length}, duplicates data : ${widget.duplicates.toString()}');
+
     widget.duplicates.forEach((element) {
       duplicateFiles.addAll(element.duplicateFiles);
     });
+
+    print(
+        'Duplicates Images initState : duplicate Files length : ${duplicateFiles.length}, duplicate files data : ${widget.duplicates.toString()}');
   }
 
   void _delete(BuildContext context) {

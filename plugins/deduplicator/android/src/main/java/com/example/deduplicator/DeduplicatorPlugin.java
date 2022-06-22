@@ -240,6 +240,7 @@ public class DeduplicatorPlugin implements FlutterPlugin, MethodCallHandler,
 
             eventSink.success(duplicatesList);
         }
+        Log.e(TAG, "Duplicate Files Length : " + duplicatesList.size());
         return duplicatesList;
     }
 
